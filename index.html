@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Library - Login</title>
+    <link rel="stylesheet" href="css/styles.css">
+
+    <script>
+        async function loginUser(event, role = 'std') {
+            event.preventDefault();
+            console.log('role : ', role);
+
+            let rollNo, password;
+
+            if (role === 'std') {
+                rollNo = document.getElementById("sroll_no").value;
+                password = document.getElementById("spassword").value;
+
+                if (!rollNo.startsWith("STD")) {
+                    alert("Invalid Student ID. Student IDs must start with 'STD'.");
+                    document.getElementById("sroll_no").classList.add("error");
+                    return;
+                }
+            } else if (role === 'lib') {
+                rollNo = document.getElementById("lroll_no").value;
+                password = document.getElementById("lpassword").value;
+
+                if (!rollNo.startsWith("LIB")) {
+                    alert("Invalid Librarian ID. Librarian IDs must start with 'LIB'.");
+                    document.getElementById("lroll_no").classList.add("error");
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch("http://localhost:5000/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ roll_no: rollNo, password: password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem("token", data.token);
+                    // Suppose your backend returns { id: 5, roll_no: "STD002", name: "...", role: "student" }
+                    localStorage.setItem("user", JSON.stringify(data.user));
+                    alert(role === 'lib' ? "Librarian Login Successful" : "Student Login Successful");
+                    window.location.href = "dashboard.html";
+                } else {
+                    alert("Login Failed: " + data.message);
+                }
+            } catch (error) {
+                alert("An error occurred while logging in. Please try again later.");
+                console.error(error);
+            }
+        }
+    </script>
+    <style>
+        .error {
+            border: 2px solid red;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Department Library</h1>
+    </header>
+    <div class="login-container">
+        <div class="login-form">
+            <h2>Student Login</h2>
+            <form onsubmit="loginUser(event,'std')">
+                <label for="sroll_no">Student ID:</label>
+                <input type="text" id="sroll_no" required>
+        
+                <label for="spassword">Password:</label>
+                <input type="password" id="spassword" required>
+        
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        <div class="login-form">
+            <h2>Librarian Login</h2>
+            <form onsubmit="loginUser(event,'lib')">
+                <label for="lroll_no">Librarian ID:</label>
+                <input type="text" id="lroll_no" required>
+        
+                <label for="lpassword">Password:</label>
+                <input type="password" id="lpassword" required>
+        
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>     
